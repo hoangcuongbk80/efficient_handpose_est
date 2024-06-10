@@ -12,15 +12,15 @@ class FPN(nn.Module):
         super(FPN, self).__init__()
         self.in_planes = 64
 
-        resnet = resnet50(pretrained=pretrained)
+        mobilenetv2 = mobilenetv2_fused(pretrained=pretrained)
 
         self.toplayer = nn.Conv2d(2048, 256, kernel_size=1, stride=1, padding=0)  # Reduce channels
 
-        self.layer0 = nn.Sequential(resnet.conv1, resnet.bn1, resnet.leakyrelu, resnet.maxpool)
-        self.layer1 = nn.Sequential(resnet.layer1)
-        self.layer2 = nn.Sequential(resnet.layer2)
-        self.layer3 = nn.Sequential(resnet.layer3)
-        self.layer4 = nn.Sequential(resnet.layer4)
+        self.layer0 = nn.Sequential(mobilenetv2.conv1, mobilenetv2.bn1, mobilenetv2.leakyrelu, mobilenetv2.maxpool)
+        self.layer1 = nn.Sequential(mobilenetv2.layer1)
+        self.layer2 = nn.Sequential(mobilenetv2.layer2)
+        self.layer3 = nn.Sequential(mobilenetv2.layer3)
+        self.layer4 = nn.Sequential(mobilenetv2.layer4)
 
         # Smooth layers
         #self.smooth1 = nn.Conv2d(256, 256, kernel_size=3, stride=1, padding=1)
@@ -65,10 +65,10 @@ class FPN(nn.Module):
         return primary_feats, secondary_feats
 
 
-class ResNet(nn.Module):
+class mobilenetv2(nn.Module):
     def __init__(self, block, layers, num_classes=1000):
         self.inplanes = 64
-        super(ResNet, self).__init__()
+        super(mobilenetv2, self).__init__()
         self.conv1 = nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3, bias=False)
         self.bn1 = nn.BatchNorm2d(64)
         self.leakyrelu = nn.LeakyReLU(inplace=True)
@@ -119,11 +119,8 @@ class ResNet(nn.Module):
         return x
 
 
-def resnet50(pretrained=False, **kwargs):
-    """Constructs a ResNet-50 model Encoder"""
-    model = ResNet(Bottleneck, [3, 4, 6, 3], **kwargs)
-    if pretrained:
-        model.load_state_dict(model_zoo.load_url("https://download.pytorch.org/models/resnet50-19c8e357.pth"))
+def mobilenetv2_fused(pretrained=False, **kwargs):
+    model = mobilenetv2(Bottleneck, [3, 4, 6, 3], **kwargs)
     return model
 
 
